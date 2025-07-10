@@ -25,7 +25,3 @@ workflows:
             -derivedDataPath build
     artifacts:
       - ios/build/Build/Products/Release-iphoneos/*.app
-    publishing:
-      email:
-        recipients:
-          - piyush.70600@gmail.com
