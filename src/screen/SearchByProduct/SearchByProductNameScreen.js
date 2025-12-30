@@ -170,6 +170,7 @@ class SearchByProductNameScreen extends Component {
   renderProductCard = ({ item }) => {
     const { navigation } = this.props;
     const { data } = this.state;
+    const timestamp = Date.now();
 
     return (
       <TouchableOpacity
@@ -185,7 +186,7 @@ class SearchByProductNameScreen extends Component {
           <Image
             source={{
               uri: item.image_path
-                ? `https://argosmob.uk/uaw-auto/public/${item?.image_path}`
+                ? `https://mtechsolution.org/${item?.image_path}?t=${timestamp}`
                 : 'https://via.placeholder.com/100',
             }}
             style={styles.image}

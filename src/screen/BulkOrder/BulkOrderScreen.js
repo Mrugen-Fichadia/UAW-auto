@@ -31,6 +31,7 @@ class BulkOrder extends Component {
                 customerName: '',
                 billTo: '',
                 shipTo: '',
+                email: '',
             },
             input: '',
             loading: false,
@@ -41,6 +42,9 @@ class BulkOrder extends Component {
             generatingPDF: false,
             isSubmit: false,
             pdfProgress: 0,
+            showDialog: false,
+            dialogProduct: null,
+            dialogQuantity: "1",
         };
         this.debounceTimer = null;
     }
@@ -110,19 +114,59 @@ class BulkOrder extends Component {
     };
 
     handleProductSelect = (product) => {
-        this.setState(prevState => {
-          const alreadySelected = prevState.selectedProducts.some(p => p.id === product.id);
-          if (alreadySelected) {
-            return {
-              selectedProducts: prevState.selectedProducts.filter(p => p.id !== product.id)
-            };
-          } else {
-            return {
-              selectedProducts: [...prevState.selectedProducts, { ...product, quantity: 1 }]
-            };
-          }
+        this.setState({
+            showDialog: true,
+            dialogProduct: product,
+            dialogQuantity: "1"
         });
-      };
+    };
+
+    confirmProductAdd = () => {
+        const { dialogProduct, dialogQuantity, selectedProducts } = this.state;
+
+        const qty = parseInt(dialogQuantity);
+        if (!qty || qty <= 0) {
+            alert("Please enter a valid quantity");
+            return;
+        }
+
+        const already = selectedProducts.find(p => p.id === dialogProduct.id);
+
+        let updatedList = [];
+
+        if (already) {
+            updatedList = selectedProducts.map(p =>
+                p.id === dialogProduct.id ? { ...p, quantity: qty } : p
+            );
+        } else {
+            updatedList = [...selectedProducts, { ...dialogProduct, quantity: qty }];
+        }
+
+        this.setState({
+            selectedProducts: updatedList,
+            showDialog: false,
+            dialogProduct: null,
+            dialogQuantity: "1",
+            input: "",
+            data: []
+        });
+    };
+
+
+    // handleProductSelect = (product) => {
+    //     this.setState(prevState => {
+    //       const alreadySelected = prevState.selectedProducts.some(p => p.id === product.id);
+    //       if (alreadySelected) {
+    //         return {
+    //           selectedProducts: prevState.selectedProducts.filter(p => p.id !== product.id)
+    //         };
+    //       } else {
+    //         return {
+    //           selectedProducts: [...prevState.selectedProducts, { ...product, quantity: 1 }]
+    //         };
+    //       }
+    //     });
+    //   };
       
 
       updateQuantity = (id, quantity) => {
@@ -169,28 +213,29 @@ class BulkOrder extends Component {
         onPress={() => this.handleProductSelect(item)}
         style={[styles.card, this.state.data.some(p => p.id === item.id) ? styles.selectedCard : {}]}
         >
-            <View style={{ marginRight: 10 }}>
+            {/*<View style={{ marginRight: 10 }}>
                 <Image
                     source={{
                         uri: item.image_path
-                            ? `https://argosmob.uk/uaw-auto/public/${item.image_path}`
+                            ? `https://mtechsolution.org/${item.image_path}?t=${Date.now()}`
                             : 'https://via.placeholder.com/100',
                     }}
                     style={styles.image}
                 />
-            </View>
-            <View style={styles.detailsContainer}>
-                <Text style={styles.title}>
-                   UAW Serial No: <Text style={styles.value}>{item.sr_no}</Text>
-                </Text>
-               
-                <Text style={styles.title}>
-                    Vehicle: <Text style={styles.value}>{item.vehicle}</Text>
-                </Text>
-                <Text style={styles.title}>
-                    Description: <Text style={styles.value}>{item.description}</Text>
-                </Text>
-            </View>
+            </View>*/}
+                <View style= {styles.detailsContainer}>
+                    <Text style={styles.title}>
+                    UAW Serial No:  <Text style={styles.value}>{item.sr_no}</Text>
+                    </Text>
+                
+                    <Text style={styles.title}>
+                        Vehicle:  <Text style={styles.value}>{item.vehicle}</Text>
+                    </Text>
+                    <Text style={styles.title}>
+                        Description:  <Text style={styles.value}>{item.description}</Text>
+                    </Text>
+                </View>
+            
         </TouchableOpacity>
     );
     handleSubmit = async () => {
@@ -206,7 +251,7 @@ class BulkOrder extends Component {
         const orderData = {
           user_id: userData?.id,
           name: userData?.name,
-          email:'uaw@uawauto.com',
+          email: form?.email,
           phone: userData?.phone,
           city: userData?.city,
           address: 'N/A',
@@ -220,8 +265,9 @@ class BulkOrder extends Component {
         };
       
         try {
+            const timestamp = Date.now();
           const response = await axios.post(
-            'https://argosmob.uk/uaw-auto/public/api/v1/product/make-order',
+            'https://mtechsolution.org/api/v1/product/make-order',
             orderData,
             { headers: { 'Content-Type': 'application/json' } }
           );
@@ -234,8 +280,16 @@ class BulkOrder extends Component {
             type:'success',
             icon:'success',
           })
-          this.setState({   isSubmit: false,})
-          this.setState({ selectedProducts: [] });
+            this.setState({
+                selectedProducts: [],
+                isSubmit: false,
+                form: {
+                    customerName: '',
+                    billTo: '',
+                    shipTo: '',
+                    email: '',
+                },
+            });
         } catch (error) {
             this.setState({   isSubmit: false,})
           console.error('Order Error:', error.response?.data || error.message);
@@ -270,6 +324,16 @@ class BulkOrder extends Component {
                                 placeholder="Customer Name"
                                 value={form.customerName}
                                 onChangeText={text => this.handleChange('customerName', text)}
+                            />
+                        </View>
+
+                        <View style={styles.inputContainer}>
+                            <Text style={styles.label}>Email</Text>
+                            <CustomTextInput
+                                placeholder="Enter email"
+                                value={form.email}
+                                onChangeText={text => this.handleChange('email', text)}
+                                keyboardType="email-address"
                             />
                         </View>
     
@@ -375,6 +439,59 @@ class BulkOrder extends Component {
                         )}
                     </View>
                 </ScrollView>
+                {this.state.showDialog && this.state.dialogProduct && (
+                    <View style={styles.dialogOverlay}>
+                        <View style={styles.dialogBox}>
+                            <Text style={styles.dialogTitle}>Set Quantity</Text>
+
+                            <Image
+                                source={{
+                                    uri: `https://mtechsolution.org/${this.state.dialogProduct.image_path}`
+                                }}
+                                style={{ width: 120, height: 120, borderRadius: 8, marginBottom: 10 }}
+                            />
+
+                            <Text style={styles.dialogText}>
+                                <Text style={{ fontWeight: "bold" }}>Sr No: </Text>
+                                {this.state.dialogProduct.sr_no}
+                            </Text>
+
+                            <Text style={styles.dialogText}>
+                                <Text style={{ fontWeight: "bold" }}>Vehicle: </Text>
+                                {this.state.dialogProduct.vehicle}
+                            </Text>
+
+                            <Text style={styles.dialogText}>
+                                <Text style={{ fontWeight: "bold" }}>Description: </Text>
+                                {this.state.dialogProduct.description}
+                            </Text>
+
+                            <TextInput
+                                style={styles.dialogInput}
+                                keyboardType="numeric"
+                                value={this.state.dialogQuantity}
+                                onChangeText={(t) => this.setState({ dialogQuantity: t })}
+                                placeholder="Enter Qty"
+                            />
+
+                            <View style={styles.dialogButtons}>
+                                <TouchableOpacity
+                                    onPress={() => this.setState({ showDialog: false })}
+                                    style={[styles.dialogBtn, { backgroundColor: "#aaa" }]}
+                                >
+                                    <Text style={styles.dialogBtnText}>Cancel</Text>
+                                </TouchableOpacity>
+
+                                <TouchableOpacity
+                                    onPress={this.confirmProductAdd}
+                                    style={[styles.dialogBtn, { backgroundColor: "#ff9900" }]}
+                                >
+                                    <Text style={styles.dialogBtnText}>Add</Text>
+                                </TouchableOpacity>
+                            </View>
+                        </View>
+                    </View>
+                )}
             </KeyboardAvoidingView>
         );
     }
@@ -408,6 +525,69 @@ const styles = StyleSheet.create({
         marginBottom: 5,
         color: '#333'
     },
+    dialogOverlay: {
+        position: "absolute",
+        top: 0,
+        left: 0,
+        right: 0,
+        bottom: 0,
+        backgroundColor: "rgba(0,0,0,0.5)",
+        justifyContent: "center",
+        alignItems: "center",
+        zIndex: 999,
+    },
+
+    dialogBox: {
+        width: "85%",
+        backgroundColor: "white",
+        padding: 20,
+        borderRadius: 12,
+        elevation: 6,
+    },
+
+    dialogTitle: {
+        fontSize: 20,
+        fontWeight: "bold",
+        textAlign: "center",
+        marginBottom: 10,
+    },
+
+    dialogText: {
+        fontSize: 14,
+        marginBottom: 5,
+        color: "#333",
+    },
+
+    dialogInput: {
+        borderWidth: 1,
+        borderColor: "#ccc",
+        borderRadius: 8,
+        padding: 10,
+        marginTop: 10,
+        marginBottom: 20,
+        textAlign: "center",
+        fontSize: 16,
+    },
+
+    dialogButtons: {
+        flexDirection: "row",
+        justifyContent: "space-between",
+    },
+
+    dialogBtn: {
+        paddingVertical: 10,
+        paddingHorizontal: 20,
+        borderRadius: 8,
+        minWidth: "45%",
+        alignItems: "center",
+    },
+
+    dialogBtnText: {
+        color: "white",
+        fontWeight: "bold",
+        fontSize: 16,
+    },
+
     pdfButtonContainer: {
         marginVertical: 15,
         paddingHorizontal: 10,
@@ -443,19 +623,24 @@ const styles = StyleSheet.create({
     },
     detailsContainer: {
         flex: 1,
+        //flexDirection: "row",
         justifyContent: 'center',
         paddingLeft: 10,
     },
     title: {
-        fontSize: 14,
-        fontWeight: 'bold',
+        fontSize: 18,
+        fontWeight: 'normal',
         color: 'black',
         marginBottom: 2,
+        marginRight: 5,
+        marginBottom: 8,
+        marginTop: 5,
     },
     value: {
-        fontSize: 14,
+        fontSize: 18,
         color: 'black',
-        fontWeight: 'normal'
+        fontWeight: 'normal',
+        fontWeight: 'bold'
     },
     selectedContainer: {
         backgroundColor: '#f8f8f8',

@@ -96,9 +96,11 @@ class SearchByVehicleScreen extends Component {
     }
   };
 
-  renderProductCard = ({ item,index }) => {
+  renderProductCard = ({ item, index }) => {
+    const timestamp = Date.now();
+    
     const imageUrl = item.image_path
-      ? `https://argosmob.uk/uaw-auto/public/${item.image_path}`
+      ? `https://mtechsolution.org/${item.image_path}?t=${timestamp}`
       : 'https://imgs.search.brave.com/K7TdjciLTAmvqtg6-fqKm20muPAAzRMj1OonJ6HIhME/rs:fit:860:0:0:0/g:ce/aHR0cHM6Ly90NC5m/dGNkbi5uZXQvanBn/LzAwLzg5LzU1LzE1/LzM2MF9GXzg5NTUx/NTk2X0xkSEFaUnd6/M2k0RU00SjBOSE5I/eTJoRVVZRGZYYzBq/LmpwZw';
 
     return (

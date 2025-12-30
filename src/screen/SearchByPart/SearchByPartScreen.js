@@ -123,7 +123,15 @@ class SearchByPartScreen extends Component {
   renderProductCard = ({ item }) => {
     const navigation = this.context;
     const { data } = this.state;
+    const timestamp = Date.now();
 
+    const imageUri = item.image_path
+    ? `https://mtechsolution.org/${item.image_path}?t=${timestamp}`
+    : 'https://via.placeholder.com/100';
+
+    console.log("Image Path:", item.image_path, "Item name: ", item.sr_no);
+    console.log("Final Image URI:", imageUri);
+    
     return (
       <TouchableOpacity
         onPress={() =>
@@ -137,11 +145,7 @@ class SearchByPartScreen extends Component {
       >
         <View style={styles.imageContainer}>
           <Image
-            source={{
-              uri: item.image_path
-                ? `https://argosmob.uk/uaw-auto/public/${item.image_path}`
-                : 'https://via.placeholder.com/100',
-            }}
+            source={{ uri: imageUri }}
             style={styles.image}
           />
         </View>
@@ -201,12 +205,17 @@ class SearchByPartScreen extends Component {
               keyExtractor={(item) => item.id.toString()}
               showsVerticalScrollIndicator={false}
               renderItem={this.renderProductCard}
+              contentContainerStyle={{
+                paddingBottom: 10,
+                flexGrow: 1
+              }}
               ListEmptyComponent={
                 !loading && input.trim() !== '' ? (
                   <Text style={styles.noData}>No products found.</Text>
                 ) : null
               }
             />
+
           )}
         </View>
       </View>
@@ -221,6 +230,7 @@ const styles = StyleSheet.create({
   },
   innerContainer: {
     padding: 20,
+    flex: 1,
   },
   label: {
     fontSize: 16,

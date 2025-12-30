@@ -67,6 +67,7 @@ const styles = StyleSheet.create({
     leftSection: {
         flexDirection: 'row',
         alignItems: 'center',
+        flex: 1,
     },
     avatar: {
         width: 40,
@@ -82,10 +83,11 @@ const styles = StyleSheet.create({
     },
     title: {
         fontWeight: '600',
-        fontSize: 16,
+        fontSize: 18,
         color: appColors.white,
         paddingEnd: scaledSize(20),
         fontFamily: 'Exo2-Bold',
+        flex:5,
     }
 });
 

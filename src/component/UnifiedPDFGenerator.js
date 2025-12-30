@@ -170,6 +170,7 @@ class UnifiedPDFGenerator extends React.Component {
         `;
 
         let tableRows = '';
+        const timestamp = Date.now();
         
         // Process data and convert images to base64
         for (let i = 0; i < data.length; i++) {
@@ -180,6 +181,7 @@ class UnifiedPDFGenerator extends React.Component {
             const sanitizedPrice = this.sanitizeText(item.price || item.product_price || 'N/A', 50);
             const sanitizedCategory = this.sanitizeText(item.category || item.product_category || item.vehicle || 'N/A', 50);
             
+            
             // Convert image to base64 if available
             let imageHtml = '';
             if (item.image || item.product_image || item.image_url || item.image_path) {
@@ -187,7 +189,7 @@ class UnifiedPDFGenerator extends React.Component {
                 
                 // If it's image_path, construct the full URL
                 if (item.image_path && !imagePath.startsWith('http')) {
-                    imagePath = `https://argosmob.uk/uaw-auto/public/${item.image_path}`;
+                    imagePath = `https://mtechsolution.org/${item.image_path}?t=${timestamp}`;
                 }
                 
                 const base64Image = await this.convertImageToBase64(imagePath);

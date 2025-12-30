@@ -205,6 +205,8 @@ class UnifiedPDFService {
         `;
 
         let tableRows = '';
+        const timestamp = Date.now();
+        
         
         // Process data and convert images to base64
         for (let i = 0; i < data.length; i++) {
@@ -224,7 +226,7 @@ class UnifiedPDFService {
                 
                 // If it's image_path, construct the full URL
                 if (item.image_path && !imagePath.startsWith('http')) {
-                    imagePath = `https://argosmob.uk/uaw-auto/public/${item.image_path}`;
+                    imagePath = `https://mtechsolution.org/${item.image_path}?t=${timestamp}`;
                 }
                 
                 const base64Image = await this.convertImageToBase64(imagePath);
