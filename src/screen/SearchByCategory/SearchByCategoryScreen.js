@@ -98,11 +98,12 @@ export default class SearchByCategoryScreen extends Component {
 
   renderDetailedProduct = () => {
     const { detailedProduct } = this.state;
+    const timestamp = Date.now();
     if (!detailedProduct) return null;
 
     const product = detailedProduct.product;
     const imageUrl = product.image_path
-      ? `https://argosmob.uk/uaw-auto/public/${product.image_path}`
+      ? `https://mtechsolution.org/${product.image_path}?t=${timestamp}`
       : 'https://via.placeholder.com/150';
 
     return (
@@ -177,6 +178,7 @@ const styles = StyleSheet.create({
   innerContainer: {
     paddingHorizontal: 10,
     paddingTop: 10,
+    flex: 1,
   },
   label: {
     fontSize: 16,

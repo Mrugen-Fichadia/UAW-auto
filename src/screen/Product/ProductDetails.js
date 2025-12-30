@@ -21,6 +21,7 @@ export default class ProductDetail extends Component {
   constructor(props) {
     super(props);
     const { product, products, index } = props.route.params;
+    const timestamp = Date.now();
 
     this.state = {
       currentProduct: product,
@@ -29,7 +30,7 @@ export default class ProductDetail extends Component {
       quantity: '1',
       quantityError: false,
       cartItems: 0,
-      mainImage: { uri: `https://argosmob.uk/uaw-auto/public/${product.image_path}` },
+      mainImage: { uri: `https://mtechsolution.org/${product.image_path}?t=${timestamp}` },
     };
 
     this.currentIndexRef = index;
@@ -117,26 +118,28 @@ export default class ProductDetail extends Component {
 
   goToNextProduct = () => {
     const { products } = this.state;
+    const timestamp = Date.now();
     if (this.currentIndexRef < products.length - 1) {
       const nextIndex = this.currentIndexRef + 1;
       const nextProduct = products[nextIndex];
       this.setState({
         currentIndex: nextIndex,
         currentProduct: nextProduct,
-        mainImage: { uri: `https://argosmob.uk/uaw-auto/public/${nextProduct.image_path}` },
+        mainImage: { uri: `https://mtechsolution.org/${nextProduct.image_path}?t=${timestamp}` },
       });
       this.currentIndexRef = nextIndex;
     }
   };
 
   goToPrevProduct = () => {
+    const timestamp = Date.now();
     if (this.currentIndexRef > 0) {
       const prevIndex = this.currentIndexRef - 1;
       const prevProduct = this.state.products[prevIndex];
       this.setState({
         currentIndex: prevIndex,
         currentProduct: prevProduct,
-        mainImage: { uri: `https://argosmob.uk/uaw-auto/public/${prevProduct.image_path}` },
+        mainImage: { uri: `https://mtechsolution.org/${prevProduct.image_path}?t=${timestamp}` },
       });
       this.currentIndexRef = prevIndex;
     }
@@ -150,8 +153,9 @@ export default class ProductDetail extends Component {
   );
 
   render() {
+    const timestamp = Date.now();
     const { currentProduct, quantity, quantityError, cartItems, mainImage } = this.state;
-    const images = [{ uri: `https://argosmob.uk/uaw-auto/public/${currentProduct.image_path}` }];
+    const images = [{ uri: `https://mtechsolution.org/${currentProduct.image_path}?t=${timestamp}` }];
 
     return (
       <View style={styles.container} {...this.panResponder.panHandlers}>

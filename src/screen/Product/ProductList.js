@@ -101,9 +101,9 @@ export default class ProductList extends Component {
   renderProductCard = ({ item }) => {
     const { navigation } = this.props;
     const { products } = this.state;
-console.log("item",item
+    console.log("item", item);
+    const timestamp = Date.now();
 
-)
     return (
       <TouchableOpacity
         style={styles.card}
@@ -119,7 +119,7 @@ console.log("item",item
           <Image
             source={{
               uri: item.image_path
-                ? `https://argosmob.uk/uaw-auto/public/${item.image_path}`
+                ? `https://mtechsolution.org/${item.image_path}?t=${timestamp}`
                 : 'https://imgs.search.brave.com/K7TdjciLTAmvqtg6-fqKm20muPAAzRMj1OonJ6HIhME/rs:fit:860:0:0:0/g:ce/aHR0cHM6Ly90NC5m/dGNkbi5uZXQvanBn/LzAwLzg5LzU1LzE1/LzM2MF9GXzg5NTUx/NTk2X0xkSEFaUnd6/M2k0RU00SjBOSE5I/eTJoRVVZRGZYYzBq/LmpwZw',
             }}
             style={styles.image}
@@ -136,7 +136,7 @@ console.log("item",item
           </View>
           <View style={{ flexDirection: 'row' }}>
             <Text style={styles.title}>Description : </Text>
-            <Text style={styles.value}>{item.description}</Text>
+            <Text numberOfLines={4} style={styles.value}>{item.description}</Text>
           </View>
         </View>
       </TouchableOpacity>
@@ -243,5 +243,7 @@ const styles = StyleSheet.create({
     fontFamily: 'Exo2-Regular',
     color: 'black',
     marginBottom: 8,
+    width:"50%",
+    
   },
 });

@@ -145,7 +145,7 @@ const BottomNavigator = () => {
 const styles = StyleSheet.create({
     tabBar: {
         position: 'absolute',
-        height: 75,
+        height: 60,
         backgroundColor: '#fff',
         borderTopLeftRadius: 20,
         borderTopRightRadius: 20,

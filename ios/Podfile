@@ -1,7 +1,11 @@
+# Resolve react_native_pods.rb with node to allow for hoisting
 require Pod::Executable.execute_command('node', ['-p',
-  'require.resolve("react-native/scripts/react_native_pods.rb", {paths: [process.argv[1]]})', __dir__]).strip
+  'require.resolve(
+    "react-native/scripts/react_native_pods.rb",
+    {paths: [process.argv[1]]},
+  )', __dir__]).strip
 
-platform :ios, '16.0'
+platform :ios, min_ios_version_supported
 prepare_react_native_project!
 
 linkage = ENV['USE_FRAMEWORKS']
@@ -15,46 +19,17 @@ target 'UAWauto' do
 
   use_react_native!(
     :path => config[:reactNativePath],
+    # An absolute path to your application root.
     :app_path => "#{Pod::Config.instance.installation_root}/.."
   )
 
-  target 'UAWautoTests' do
-    inherit! :complete
-    # Pods for testing
-  end
-
   post_install do |installer|
-    # Fix SCrypto error
-    require 'fileutils'
-    FileUtils.rm_rf('Pods/SCrypto/Frameworks/iphonesimulator/CommonCrypto.framework')
-
+    # https://github.com/facebook/react-native/blob/main/packages/react-native/scripts/react_native_pods.rb#L197-L202
     react_native_post_install(
       installer,
       config[:reactNativePath],
-      :mac_catalyst_enabled => false
+      :mac_catalyst_enabled => false,
+      # :ccache_enabled => true
     )
-
-    # Apply custom build settings
-    installer.pods_project.targets.each do |target|
-      target.build_configurations.each do |config|
-        config.build_settings['IPHONEOS_DEPLOYMENT_TARGET'] = '16.0'
-        config.build_settings['SWIFT_VERSION'] ||= '5.9'
-
-        # Permissions and defines
-        config.build_settings['GCC_PREPROCESSOR_DEFINITIONS'] ||= [
-          '$(inherited)',
-          'PERMISSION_CAMERA=1',
-          'PERMISSION_PHOTOS=1',
-          'PERMISSION_MICROPHONE=0',
-          'PERMISSION_LOCATION=0',
-          'PERMISSION_CONTACTS=0',
-          'PERMISSION_MEDIA_LIBRARY=0',
-          'PERMISSION_SPEECH_RECOGNIZER=0',
-          'PERMISSION_REMINDERS=0',
-          'PERMISSION_EVENTS=0',
-          'PERMISSION_SENSORS=0'
-        ]
-      end
-    end
   end
 end

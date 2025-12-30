@@ -72,12 +72,15 @@ def enableProguardInReleaseBuilds = false
  */
 def jscFlavor = 'io.github.react-native-community:jsc-android:2026004.+'
 
+<<<<<<< HEAD
 def keystoreProperties = new Properties()
 def keystorePropertiesFile = rootProject.file("gradle.properties")
 if (keystorePropertiesFile.exists()) {
     keystoreProperties.load(new FileInputStream(keystorePropertiesFile))
 }
 
+=======
+>>>>>>> new-code
 android {
     ndkVersion rootProject.ext.ndkVersion
     buildToolsVersion rootProject.ext.buildToolsVersion
@@ -88,6 +91,7 @@ android {
         applicationId "com.uawauto.uaw"
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
+<<<<<<< HEAD
         versionCode 5
         versionName "1.0.1"
     }
@@ -99,6 +103,19 @@ android {
         //     keyPassword 'android'
         // }
         release {
+=======
+        versionCode 10
+        versionName "1.0.3"
+    }
+    signingConfigs {
+        debug {
+            storeFile file('debug.keystore')
+            storePassword 'android'
+            keyAlias 'androiddebugkey'
+            keyPassword 'android'
+        }
+         release {
+>>>>>>> new-code
             storeFile file(MYAPP_UPLOAD_STORE_FILE)
             storePassword MYAPP_UPLOAD_STORE_PASSWORD
             keyAlias MYAPP_UPLOAD_KEY_ALIAS
@@ -106,14 +123,20 @@ android {
         }
     }
     buildTypes {
+<<<<<<< HEAD
         debug {
             signingConfig signingConfigs.debug
         }
+=======
+>>>>>>> new-code
         release {
               signingConfig signingConfigs.release
             // Caution! In production, you need to generate your own keystore file.
             // see https://reactnative.dev/docs/signed-apk-android.
+<<<<<<< HEAD
             signingConfig signingConfigs.debug
+=======
+>>>>>>> new-code
             minifyEnabled enableProguardInReleaseBuilds
             proguardFiles getDefaultProguardFile("proguard-android.txt"), "proguard-rules.pro"
         }
