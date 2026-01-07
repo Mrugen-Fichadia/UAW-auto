@@ -48,8 +48,21 @@ export default class Home extends Component {
 
   downloadSinglePDF = async (url, fileName) => {
     try {
-      const path = `${RNFS.DownloadDirectoryPath}/${fileName}`;
-      await RNFS.downloadFile({ fromUrl: url, toFile: path }).promise;
+      const path =
+        Platform.OS === "android"
+          ? `${RNFS.DownloadDirectoryPath}/${fileName}`
+          : `${RNFS.DocumentDirectoryPath}/${fileName}`;
+
+      const result = await RNFS.downloadFile({
+        fromUrl: url,
+        toFile: path,
+      }).promise;
+
+      if (result.statusCode === 200) {
+        console.log("Downloaded:", path);
+      } else {
+        throw new Error("Download failed");
+      }
     } catch (e) {
       console.log("Error downloading:", fileName, e);
     }
@@ -66,7 +79,12 @@ export default class Home extends Component {
       await this.downloadSinglePDF(baseURL + file, file);
     }
 
-    Alert.alert("Download Complete", "All Catalouges downloaded in Downloads folder");
+    Alert.alert(
+      "Download Complete",
+      Platform.OS === "android"
+        ? "All catalogues downloaded in Downloads folder"
+        : "All catalogues saved inside the app storage"
+    );
   };
 
 
