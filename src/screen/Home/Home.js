@@ -90,14 +90,25 @@ export default class Home extends Component {
 
   downloadPDF = async (url, fileName) => {
     try {
-      const filePath = `${RNFS.DownloadDirectoryPath}/${fileName}.pdf`;
+      //const filePath = `${RNFS.DownloadDirectoryPath}/${fileName}.pdf`;
+      const filePath =
+        Platform.OS === "android"
+          ? `${RNFS.DownloadDirectoryPath}/${fileName}`
+          : `${RNFS.DocumentDirectoryPath}/${fileName}`;
 
       await RNFS.downloadFile({
         fromUrl: url,
         toFile: filePath,
       }).promise;
 
-      Alert.alert('Download Completed', `File saved to Downloads folder as "${fileName}.pdf"`);
+      Alert.alert(
+      "Download Completed",
+      Platform.OS === "android"
+        ? `File saved to Downloads folder as "${fileName}.pdf"`
+        : `File saved inside the app storage as "${fileName}.pdf"`
+    );
+
+      //Alert.alert('Download Completed', `File saved to Downloads folder as "${fileName}.pdf"`);
     } catch (error) {
       console.error('Download error:', error);
       Alert.alert('Download Failed', 'Could not download PDF file.');
