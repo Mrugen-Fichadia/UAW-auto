@@ -19,6 +19,8 @@ import Carousel from '../../component/Carousel';
 import axios from 'axios';
 import { homeScreenBanner } from '../../component/URL';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import FileViewer from 'react-native-file-viewer';
+import Share from 'react-native-share';
 
 const { width } = Dimensions.get('window');
 const NEW_PRODUCTS_PDF_URL = "https://mtechsolution.org/uploads/new_products.pdf";
@@ -48,67 +50,119 @@ export default class Home extends Component {
 
   downloadSinglePDF = async (url, fileName) => {
     try {
-      const path =
-        Platform.OS === "android"
-          ? `${RNFS.DownloadDirectoryPath}/${fileName}`
-          : `${RNFS.DocumentDirectoryPath}/${fileName}`;
+      const filePath =
+        Platform.OS === 'android'
+          ? `${RNFS.DownloadDirectoryPath}/${fileName}.pdf`
+          : `${RNFS.DocumentDirectoryPath}/${fileName}.pdf`;
 
       const result = await RNFS.downloadFile({
         fromUrl: url,
-        toFile: path,
+        toFile: filePath,
       }).promise;
 
-      if (result.statusCode === 200) {
-        console.log("Downloaded:", path);
-      } else {
-        throw new Error("Download failed");
+      if (result.statusCode !== 200) {
+        throw new Error(`Download failed with status ${result.statusCode}`);
       }
+
+      console.log('Downloaded:', filePath);
+
+      if (Platform.OS === 'ios') {
+        await FileViewer.open(filePath, {
+          showOpenWithDialog: true,
+        });
+      }
+
+      Alert.alert(
+        'Download Completed',
+        Platform.OS === 'android'
+          ? `File saved to Downloads as "${fileName}.pdf"`
+          : 'PDF opened. You can save it to Files.'
+      );
     } catch (e) {
-      console.log("Error downloading:", fileName, e);
+      console.error('Error downloading:', fileName, e);
+      Alert.alert('Download Failed', 'Could not download PDF file.');
     }
   };
 
+  // downloadAllPdfs = async (type) => {
+  //   const pdfList = await this.fetchPDFFiles();
+  //   if (!pdfList) return;
+
+  //   const files = type === "local" ? pdfList.local : pdfList.international;
+  //   const baseURL = type === "local" ? LOCAL_FOLDER : INTERNATIONAL_FOLDER;
+
+  //   for (let file of files) {
+  //     await this.downloadSinglePDF(baseURL + file, file);
+  //   }
+
+  //   Alert.alert(
+  //     "Download Complete",
+  //     Platform.OS === "android"
+  //       ? "All catalogues downloaded in Downloads folder"
+  //       : "All catalogues saved inside the app storage"
+  //   );
+  // };
+
   downloadAllPdfs = async (type) => {
-    const pdfList = await this.fetchPDFFiles();
-    if (!pdfList) return;
+    try {
+      const pdfList = await this.fetchPDFFiles();
+      if (!pdfList) return;
 
-    const files = type === "local" ? pdfList.local : pdfList.international;
-    const baseURL = type === "local" ? LOCAL_FOLDER : INTERNATIONAL_FOLDER;
+      const files = type === 'local' ? pdfList.local : pdfList.international;
+      const baseURL = type === 'local' ? LOCAL_FOLDER : INTERNATIONAL_FOLDER;
 
-    for (let file of files) {
-      await this.downloadSinglePDF(baseURL + file, file);
+      const downloadedFiles = [];
+
+      for (const file of files) {
+        const path = await this.downloadSinglePDF(baseURL + file, file);
+        if (Platform.OS === 'ios') {
+          downloadedFiles.push(`file://${path}`);
+        }
+      }
+
+      // ✅ iOS: Share ALL files once
+      if (Platform.OS === 'ios' && downloadedFiles.length) {
+        await Share.open({
+          urls: downloadedFiles,
+          title: 'Save PDFs to Files',
+        });
+      }
+
+      Alert.alert(
+        'Download Complete',
+        Platform.OS === 'android'
+          ? 'All catalogues downloaded in Downloads folder'
+          : 'Select “Save to Files” to store all PDFs'
+      );
+    } catch (e) {
+      console.error('Download all PDFs failed:', e);
+      Alert.alert('Download Failed', 'Could not download all PDF files.');
     }
-
-    Alert.alert(
-      "Download Complete",
-      Platform.OS === "android"
-        ? "All catalogues downloaded in Downloads folder"
-        : "All catalogues saved inside the app storage"
-    );
   };
 
 
   downloadPDF = async (url, fileName) => {
     try {
-      //const filePath = `${RNFS.DownloadDirectoryPath}/${fileName}.pdf`;
       const filePath =
-        Platform.OS === "android"
-          ? `${RNFS.DownloadDirectoryPath}/${fileName}`
-          : `${RNFS.DocumentDirectoryPath}/${fileName}`;
+        Platform.OS === 'android'
+          ? `${RNFS.DownloadDirectoryPath}/${fileName}.pdf`
+          : `${RNFS.DocumentDirectoryPath}/${fileName}.pdf`;
 
       await RNFS.downloadFile({
         fromUrl: url,
         toFile: filePath,
       }).promise;
 
-      Alert.alert(
-      "Download Completed",
-      Platform.OS === "android"
-        ? `File saved to Downloads folder as "${fileName}.pdf"`
-        : `File saved inside the app storage as "${fileName}.pdf"`
-    );
+      if (Platform.OS === 'ios') {
+        await FileViewer.open(filePath, { showOpenWithDialog: true });
+      }
 
-      //Alert.alert('Download Completed', `File saved to Downloads folder as "${fileName}.pdf"`);
+      Alert.alert(
+        'Download Completed',
+        Platform.OS === 'android'
+          ? `File saved to Downloads as "${fileName}.pdf"`
+          : `PDF opened. You can save it to Files.`
+      );
     } catch (error) {
       console.error('Download error:', error);
       Alert.alert('Download Failed', 'Could not download PDF file.');
