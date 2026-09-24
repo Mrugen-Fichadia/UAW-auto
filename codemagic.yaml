@@ -8,7 +8,7 @@ workflows:
       
     environment:
       node: 18.16.0
-      xcode: latest
+      xcode: 15.4
       vars:
         BUNDLE_ID: "com.uawauto.uaw"
 
