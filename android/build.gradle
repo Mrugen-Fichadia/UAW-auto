@@ -1,9 +1,9 @@
 buildscript {
     ext {
-        buildToolsVersion = "35.0.0"
+        buildToolsVersion = "36.0.0"
         minSdkVersion = 24
-        compileSdkVersion = 35
-        targetSdkVersion = 35
+        compileSdkVersion = 36
+        targetSdkVersion = 36
         ndkVersion = "27.1.12297006"
         kotlinVersion = "2.1.20"
     }
@@ -19,3 +19,33 @@ buildscript {
 }
 
 apply plugin: "com.facebook.react.rootproject"
+
+
+gradle.projectsEvaluated {
+    def appProject = rootProject.subprojects.find { it.name == 'app' }
+    def reanimated = rootProject.subprojects.find { it.name == 'react-native-reanimated' }
+    def worklets = rootProject.subprojects.find { it.name == 'react-native-worklets' }
+
+    if (reanimated != null && worklets != null) {
+        reanimated.tasks.matching { it.name.toLowerCase().contains("configurecmake") }.configureEach { cmakeTask ->
+            cmakeTask.dependsOn(worklets.tasks.matching { it.name.toLowerCase().contains("prefab") })
+        }
+    }
+
+    if (appProject != null) {
+        appProject.tasks.matching { it.name.toLowerCase().contains("configurecmake") }.configureEach { cmakeTask ->
+            rootProject.subprojects.each { subproj ->
+                if (subproj != appProject) {
+                    cmakeTask.dependsOn(subproj.tasks.matching { 
+                        it.name.toLowerCase().contains("codegen") || it.name.toLowerCase().contains("prefab") 
+                    })
+                }
+            }
+        }
+    }
+}
+
+
+
+
+

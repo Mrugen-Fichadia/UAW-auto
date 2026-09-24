@@ -93,6 +93,15 @@ export default class Profile extends Component {
         <Text style={styles.username}>{name || 'Guest User'}</Text>
         <Text style={styles.mobile}>{number || '+91 -----------'}</Text>
 
+        {/* Reward Claims */}
+        <TouchableOpacity
+          style={[styles.button, styles.rewardButton]}
+          onPress={() => this.props.navigation.navigate('RewardClaimsScreen')}
+        >
+          <Icon name="gift-outline" size={20} color="#fff" style={styles.icon} />
+          <Text style={styles.buttonText}>Reward Claims & Payouts</Text>
+        </TouchableOpacity>
+
         {/* Order History */}
         <TouchableOpacity
           style={styles.button}
@@ -168,6 +177,9 @@ const styles = StyleSheet.create({
     width: '90%',
     alignItems: 'center',
     justifyContent: 'center',
+  },
+  rewardButton: {
+    backgroundColor: '#2C9A45',
   },
   logoutButton: {
     backgroundColor: '#FF3B30',

@@ -15,7 +15,7 @@ import ContactUs from '../screen/ContactUs/ContactUs';
 import BulkOrder from '../screen/BulkOrder/BulkOrderScreen';
 import Checkout from '../screen/Cart/Checkout';
 import OrderHistory from '../screen/OrderHistory/OrderHistory';
-
+import RewardClaimsScreen from '../screen/Profile/RewardClaimsScreen';
 
 const Stack = createNativeStackNavigator();
 
@@ -113,6 +113,13 @@ const Navigation = () => {
                 <Stack.Screen
                     name="OrderHistory"
                     component={OrderHistory}
+                    options={{
+                        headerShown: false,
+                    }}
+                />
+                <Stack.Screen
+                    name="RewardClaimsScreen"
+                    component={RewardClaimsScreen}
                     options={{
                         headerShown: false,
                     }}

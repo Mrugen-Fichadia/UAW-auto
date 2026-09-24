@@ -8,4 +8,5 @@ export const ProductListByPartURL = `${baseURL}product/part-no`;
 export const ProductListByProductNameURL = `https://mtechsolution.org/api/v1/product/product-name`;
 export const CheckoutURL = `${baseURL}product/make-order`;
 export const OrderHistoryURL = `https://mtechsolution.org/api/v1/product/order-history`;
+export const RewardClaimsURL = `${baseURL}user/reward-claims`;
 
