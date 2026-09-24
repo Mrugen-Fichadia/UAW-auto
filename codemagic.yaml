@@ -6,6 +6,9 @@ workflows:
       app_store_connect: UAW_API_Key
       
     environment:
+      ios_signing:
+        distribution_type: app_store
+        bundle_identifier: com.uawauto.uaw
       node: 18.16.0
       xcode: latest
       vars:
@@ -26,15 +29,6 @@ workflows:
       - name: Set up code signing
         script: |
           set -ex
-          keychain initialize
-          CERT_KEY=$(openssl genrsa 2048)
-          app-store-connect fetch-signing-files "$BUNDLE_ID" \
-            --type IOS_APP_STORE \
-            --certificate-key "$CERT_KEY" \
-            --create
-          keychain add-certificates
-          mkdir -p ~/Library/MobileDevice/Provisioning\ Profiles
-          cp /Users/builder/Library/Developer/Xcode/UserData/Provisioning\ Profiles/*.mobileprovision ~/Library/MobileDevice/Provisioning\ Profiles/ 2>/dev/null || true
           xcode-project use-profiles --project ios/UAWauto.xcodeproj
 
       - name: Build iOS IPA
