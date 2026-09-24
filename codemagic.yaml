@@ -33,6 +33,8 @@ workflows:
             --certificate-key "$CERT_KEY" \
             --create
           keychain add-certificates
+          mkdir -p ~/Library/MobileDevice/Provisioning\ Profiles
+          cp /Users/builder/Library/Developer/Xcode/UserData/Provisioning\ Profiles/*.mobileprovision ~/Library/MobileDevice/Provisioning\ Profiles/ 2>/dev/null || true
           xcode-project use-profiles --project ios/UAWauto.xcodeproj
 
       - name: Build iOS IPA
