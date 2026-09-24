@@ -33,7 +33,7 @@ workflows:
             --certificate-key "$CERT_KEY" \
             --create
           keychain add-certificates
-          xcode-project use-profiles
+          xcode-project use-profiles --project ios/UAWauto.xcodeproj
 
       - name: Build iOS IPA
         script: |
