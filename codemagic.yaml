@@ -38,12 +38,48 @@ workflows:
           cp /Users/builder/Library/Developer/Xcode/UserData/Provisioning\ Profiles/*.mobileprovision ~/Library/MobileDevice/Provisioning\ Profiles/ 2>/dev/null || true
           xcode-project use-profiles --project ios/UAWauto.xcodeproj
 
-      - name: Build iOS IPA
+      - name: Build and Export iOS IPA
         script: |
           set -ex
-          xcode-project build-ipa \
-            --workspace ios/UAWauto.xcworkspace \
-            --scheme UAWauto
+          PROFILE_PATH=$(find ~/Library/MobileDevice/Provisioning\ Profiles /Users/builder/Library/Developer/Xcode/UserData/Provisioning\ Profiles -name "*.mobileprovision" | head -n 1)
+          PROFILE_UUID=$(/usr/libexec/PlistBuddy -c "Print UUID" /dev/stdin <<< $(security cms -D -i "$PROFILE_PATH"))
+          echo "Using extracted PROFILE_UUID: $PROFILE_UUID"
+
+          cat <<EOF > /tmp/exportOptions.plist
+          <?xml version="1.0" encoding="UTF-8"?>
+          <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+          <plist version="1.0">
+          <dict>
+            <key>method</key>
+            <string>app-store</string>
+            <key>signingStyle</key>
+            <string>manual</string>
+            <key>provisioningProfiles</key>
+            <dict>
+              <key>$BUNDLE_ID</key>
+              <string>$PROFILE_UUID</string>
+            </dict>
+          </dict>
+          </plist>
+          EOF
+
+          xcodebuild clean -workspace ios/UAWauto.xcworkspace -scheme UAWauto
+
+          xcodebuild -workspace ios/UAWauto.xcworkspace \
+            -scheme UAWauto \
+            -archivePath "$CM_BUILD_DIR/UAWauto.xcarchive" \
+            archive \
+            PRODUCT_BUNDLE_IDENTIFIER="$BUNDLE_ID" \
+            CODE_SIGN_STYLE=Manual \
+            CODE_SIGN_IDENTITY="Apple Distribution" \
+            PROVISIONING_PROFILE_SPECIFIER="$PROFILE_UUID" \
+            DEVELOPMENT_TEAM=3N2T3MD7F6
+
+          mkdir -p "$CM_BUILD_DIR/build/ios"
+          xcodebuild -exportArchive \
+            -archivePath "$CM_BUILD_DIR/UAWauto.xcarchive" \
+            -exportOptionsPlist /tmp/exportOptions.plist \
+            -exportPath "$CM_BUILD_DIR/build/ios"
 
     artifacts:
       - build/ios/*.ipa
