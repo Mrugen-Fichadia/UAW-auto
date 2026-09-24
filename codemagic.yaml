@@ -9,10 +9,6 @@ workflows:
       node: 18.16.0
       xcode: latest
       vars:
-        APP_PROFILE_PATH: "ios/UAW_Provision_Profile.mobileprovision"
-        P12_CERT_PATH: "ios/uaw_certificate.p12"
-        CERTIFICATE_PASSWORD: LWXAxSMY
-        EXPORT_OPTIONS_PLIST: "ios/exportOptions.plist"
         BUNDLE_ID: "com.uawauto.uaw"
 
     scripts:
@@ -27,128 +23,22 @@ workflows:
           cd ios
           pod install --repo-update
 
-      - name: Debug – Check if xcworkspace exists
+      - name: Set up code signing
         script: |
           set -ex
-          if [ ! -f ios/UAWauto.xcworkspace/contents.xcworkspacedata ]; then
-            echo "❌ .xcworkspace not found. pod install might have failed."
-            exit 1
-          else
-            echo "✅ .xcworkspace file found."
-          fi
+          keychain initialize
+          app-store-connect fetch-signing-files "$BUNDLE_ID" \
+            --type IOS_APP_STORE \
+            --create
+          keychain add-certificates
+          xcode-project use-profiles
 
-      - name: Debug – List Xcode schemes
+      - name: Build iOS IPA
         script: |
           set -ex
-          xcodebuild -list -workspace ios/UAWauto.xcworkspace
-
-      - name: Debug - Show buildable targets for scheme
-        script: |
-          set -ex
-          xcodebuild -showBuildSettings -workspace ios/UAWauto.xcworkspace -scheme UAWauto | grep -i "targetname"
-
-      - name: Install certificate
-        script: |
-          set -ex
-          security create-keychain -p "" build.keychain
-          security default-keychain -s build.keychain
-          security unlock-keychain -p "" build.keychain
-
-          # ① import the .p12 and grant codesign **and** security access (-A + -T)
-          security import "$P12_CERT_PATH" \
-              -k build.keychain \
-              -P "$CERTIFICATE_PASSWORD" \
-              -A \
-              -T /usr/bin/codesign \
-              -T /usr/bin/security
-
-          # ② add the modern key‑partition list entitlement (required on macOS 14)
-          security set-key-partition-list -S apple-tool:,apple: -s -k "" build.keychain
-
-          # Optional: keep the keychain unlocked for 2 h
-          security set-keychain-settings -lut 7200 build.keychain
-          security list-keychains -s build.keychain
-
-      - name: Install provisioning profile
-        script: |
-          set -ex
-          mkdir -p ~/Library/MobileDevice/Provisioning\ Profiles
-          PROFILE_UUID=$(/usr/libexec/PlistBuddy -c "Print UUID" /dev/stdin <<< $(security cms -D -i "$APP_PROFILE_PATH"))
-          echo "Using extracted PROFILE_UUID: $PROFILE_UUID"
-          cp "$APP_PROFILE_PATH" "$HOME/Library/MobileDevice/Provisioning Profiles/$PROFILE_UUID.mobileprovision"
-          echo "PROFILE_UUID=$PROFILE_UUID" >> $CM_ENV
-
-      - name: Apply manual signing to Xcode project
-        script: |
-          set -ex
-          xcode-project use-profiles --project ios/UAWauto.xcodeproj
-
-      - name: Clean Xcode build
-        script: |
-          set -ex
-          xcodebuild clean -workspace ios/UAWauto.xcworkspace -scheme UAWauto
-
-      - name: Build iOS archive
-        script: |
-          set -ex
-          echo "🔒 Using PROFILE_UUID=$PROFILE_UUID"
-          xcodebuild -workspace ios/UAWauto.xcworkspace \
-            -scheme UAWauto \
-            -archivePath "$CM_BUILD_DIR/UAWauto.xcarchive" \
-            archive \
-            PRODUCT_BUNDLE_IDENTIFIER="$BUNDLE_ID" \
-            CODE_SIGN_STYLE=Manual \
-            CODE_SIGN_IDENTITY="Apple Distribution" \
-            PROVISIONING_PROFILE_SPECIFIER="$PROFILE_UUID" \
-            DEVELOPMENT_TEAM=3N2T3MD7F6 \
-            OTHER_CODE_SIGN_FLAGS="--keychain build.keychain" \
-            | tee "$CM_BUILD_DIR/xcodebuild.log" \
-            | xcpretty --color || cat "$CM_BUILD_DIR/xcodebuild.log"
-
-      - name: 🔍 Dump failing Script log
-        script: |
-          set -ex
-          grep -n "Script-00EEFC60759A1932668264C0" -n "$CM_BUILD_DIR/xcodebuild.log" | \
-            while IFS=: read -r ln _; do
-              start=$((ln-20)); [ $start -lt 1 ] && start=1
-              end=$((ln+20))
-              sed -n "${start},${end}p" "$CM_BUILD_DIR/xcodebuild.log"
-            done || true
-
-      - name: Debug – show xcodebuild errors
-        script: |
-          set -ex
-          echo " Showing last errors from xcodebuild.log:"
-          grep -i -A 5 -B 5 "error:" "$CM_BUILD_DIR/xcodebuild.log" || true
-
-      - name: Export IPA and log file structure
-        script: |
-          set -ex
-          EXPORT_PATH="$CM_BUILD_DIR/build/ios"
-          mkdir -p "$EXPORT_PATH"
-          xcodebuild -exportArchive \
-            -archivePath "$CM_BUILD_DIR/UAWauto.xcarchive" \
-            -exportOptionsPlist "$EXPORT_OPTIONS_PLIST" \
-            -exportPath "$EXPORT_PATH"
-          echo " Contents of $EXPORT_PATH"
-          find "$EXPORT_PATH" -print
-
-      - name: Print full build log
-        script: |
-          echo " Printing full build log:"
-          cat "$CM_BUILD_DIR/xcodebuild.log"
-
-      - name: Dump failing embed script log if present
-        script: |
-          set -ex
-          LOG=$(find ~/Library/Developer/Xcode/DerivedData -name "Script-00EEFC60759A1932668264C0.sh-*stderr" -print -quit || true)
-          if [ -n "$LOG" ]; then
-            echo " ---- Begin embed-frameworks log ----"
-            cat "$LOG" | tail -n 120
-            echo " ---- End embed-frameworks log ------"
-          else
-            echo "No per-phase log found."
-          fi
+          xcode-project build-ipa \
+            --workspace ios/UAWauto.xcworkspace \
+            --scheme UAWauto
 
     artifacts:
       - build/ios/*.ipa
