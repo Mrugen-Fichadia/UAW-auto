@@ -27,7 +27,11 @@ workflows:
         script: |
           set -ex
           keychain initialize
-          app-store-connect create-certificate --type IOS_DISTRIBUTION --save
+          CERT_KEY=$(openssl genrsa 2048)
+          app-store-connect certificates create \
+            --type IOS_DISTRIBUTION \
+            --certificate-key "$CERT_KEY" \
+            --save
           app-store-connect fetch-signing-files "$BUNDLE_ID" \
             --type IOS_APP_STORE \
             --create
