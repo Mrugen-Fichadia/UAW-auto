@@ -9,4 +9,4 @@ export const ProductListByProductNameURL = `https://mtechsolution.org/api/v1/pro
 export const CheckoutURL = `${baseURL}product/make-order`;
 export const OrderHistoryURL = `https://mtechsolution.org/api/v1/product/order-history`;
 export const RewardClaimsURL = `${baseURL}user/reward-claims`;
-
+export const deleteAccountURL = `${baseURL}auth/delete-account`;

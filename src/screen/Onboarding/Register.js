@@ -81,7 +81,6 @@ export default class Register extends Component {
     if (!companyName.trim()) return this.showFlash('Company Name is required');
     if (!mobileNumber.trim()) return this.showFlash('Mobile Number is required');
     if (!/^[0-9]{10}$/.test(mobileNumber)) return this.showFlash('Enter a valid 10-digit Mobile Number');
-    if (!dob.trim()) return this.showFlash('Date of Birth is required');
     if (!state) return this.showFlash('State is required');
     if (!city) return this.showFlash('City is required');
 
@@ -108,7 +107,9 @@ export default class Register extends Component {
     formData.append('name', name);
     formData.append('company_name', companyName);
     formData.append('phone', mobileNumber);
-    formData.append('dob', this.convertToDateFormat(dob));
+    if (dob && dob.trim()) {
+      formData.append('dob', this.convertToDateFormat(dob));
+    }
     formData.append('country', country);
     formData.append('state', state);
     formData.append('city', city);
@@ -186,7 +187,7 @@ console.log("formData",formData)
 
             <DateSelector
               value={dob}
-              placeholder="Date of Birth"
+              placeholder="Date of Birth (Optional)"
               onChange={(date) => this.setState({ dob: date })}
               ref={this.dobRef}
             />
